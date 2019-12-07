@@ -7,7 +7,7 @@ import tensorflow as tf
 from gcn.utils import *
 from gcn.models import GCN, MLP
 
-def run_training(adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask, model_type):
+def run_training(adj, features, y_train, y_val, y_test, train_mask, val_mask, test_mask, model_type, model=None):
     # Set random seed
     seed = 123
     np.random.seed(seed)
@@ -17,7 +17,6 @@ def run_training(adj, features, y_train, y_val, y_test, train_mask, val_mask, te
     try:
         flags = tf.app.flags
         FLAGS = flags.FLAGS
-        flags.DEFINE_string('dataset', 'cora', 'Dataset string.')  # 'cora', 'citeseer', 'pubmed'
         flags.DEFINE_string('model', 'gcn', 'Model string.')  # 'gcn', 'gcn_cheby', 'dense'
         flags.DEFINE_float('learning_rate', 0.01, 'Initial learning rate.')
         flags.DEFINE_integer('epochs', 500, 'Number of epochs to train.')
@@ -68,7 +67,8 @@ def run_training(adj, features, y_train, y_val, y_test, train_mask, val_mask, te
     }
 
     # Create model
-    model = model_func(placeholders, input_dim=features[2][1], logging=True)
+    if model is None:
+        model = model_func(placeholders, input_dim=features[2][1], logging=True)
 
     # Initialize session
     sess = tf.Session()
@@ -117,4 +117,4 @@ def run_training(adj, features, y_train, y_val, y_test, train_mask, val_mask, te
     test_cost, test_acc, test_outputs, test_duration = evaluate(features, support, y_test, test_mask, placeholders)
     print("Test set results:", "cost=", "{:.5f}".format(test_cost),
           "accuracy=", "{:.5f}".format(test_acc), "time=", "{:.5f}".format(test_duration))
-    return test_outputs
+    return model, test_outputs
