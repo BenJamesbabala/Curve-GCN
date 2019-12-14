@@ -69,6 +69,11 @@ def run_training(adj, features, y_train, y_val, y_test, train_mask, val_mask, te
     # Create model
     if model is None:
         model = model_func(placeholders, input_dim=features[2][1], logging=True)
+    else:
+        model.placeholders = placeholders
+        model.inputs = placeholders['features']
+        model.output_dim = placeholders['labels'].get_shape().as_list()[1]
+        model.input_dim = features[2][1]
 
     # Initialize session
     sess = tf.Session()
@@ -98,11 +103,11 @@ def run_training(adj, features, y_train, y_val, y_test, train_mask, val_mask, te
         # Training step
         outs = sess.run([model.opt_op, model.loss, model.accuracy], feed_dict=feed_dict)
 
-        # Validation
-        cost, acc, _, duration = evaluate(features, support, y_val, val_mask, placeholders)
-        cost_val.append(cost)
+        # # Validation
+        # cost, acc, _, duration = evaluate(features, support, y_val, val_mask, placeholders)
+        # cost_val.append(cost)
 
-        # Print results
+        # # Print results
         # print("Epoch:", '%04d' % (epoch + 1), "train_loss=", "{:.5f}".format(outs[1]),
         #       "train_acc=", "{:.5f}".format(outs[2]), "val_loss=", "{:.5f}".format(cost),
         #       "val_acc=", "{:.5f}".format(acc), "time=", "{:.5f}".format(time.time() - t))
@@ -111,10 +116,10 @@ def run_training(adj, features, y_train, y_val, y_test, train_mask, val_mask, te
         #     print("Early stopping...")
         #     break
 
-    print("Optimization Finished!")
+    # print("Optimization Finished!")
 
     # Testing
     test_cost, test_acc, test_outputs, test_duration = evaluate(features, support, y_test, test_mask, placeholders)
-    print("Test set results:", "cost=", "{:.5f}".format(test_cost),
-          "accuracy=", "{:.5f}".format(test_acc), "time=", "{:.5f}".format(test_duration))
+    print("Training results:", "cost=", "{:.5f}".format(test_cost),
+        "time=", "{:.5f}".format(test_duration)) #"accuracy=", "{:.5f}".format(test_acc)
     return model, test_outputs
